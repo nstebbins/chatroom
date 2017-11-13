@@ -77,6 +77,7 @@ public class Server {
 
     private static List<Credential> readCredentials(String file) {
         List<Credential> credentials = new ArrayList<>();
+        // TODO: read file from the resources folder
         try {
             BufferedReader inFromFile = new BufferedReader(new FileReader(file));
             while (inFromFile.ready()) {
@@ -88,6 +89,7 @@ public class Server {
         } catch (Exception e) {
             e.printStackTrace(); // TODO: better logging
         }
+        System.out.println("number of credentials read in: " + credentials.size());
         return credentials;
     }
 
@@ -97,7 +99,7 @@ public class Server {
             port = Integer.parseInt(args[0]);
         }
         ServerSocket serverSocket = new ServerSocket(port);
-        Server newServer = new Server(readCredentials("src/main/user_pass.txt"));
+        Server newServer = new Server(readCredentials("/Users/nstebbins/Documents/dev/chatroom/src/main/resources/user_pass.txt"));
         // accept clients
         while (true) {
             Socket clientSocket = serverSocket.accept();

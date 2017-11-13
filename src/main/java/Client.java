@@ -30,12 +30,13 @@ public class Client {
             // username
             System.out.println("[server] " + inFromServer.readLine());
             username = inFromUser.readLine();
-            outToServer.println(inFromUser.readLine());
+            outToServer.println(username);
             // password
             System.out.println("[server] " + inFromServer.readLine());
             String password = inFromUser.readLine();
             outToServer.println(password);
             // auth
+            // TODO: change logic slightly around auth message
             authMessage = inFromServer.readLine();
             System.out.println("[server] " + authMessage);
             numAttempts++;
