@@ -41,7 +41,7 @@ public class Client {
             System.out.println("[server] " + authMessage);
             numAttempts++;
         }
-        return username;
+        return authMessage.equals(ServerConstants.OK) ? username : null;
     }
 
     public void menu() {
@@ -182,6 +182,7 @@ public class Client {
         // TODO: implement
         Client client = new Client(ip, port);
         String username = client.greeting();
+        System.out.println("username: " + username);
         if (username != null) {
             client.menu();
         }

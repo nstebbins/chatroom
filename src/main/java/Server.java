@@ -59,6 +59,8 @@ public class Server {
                     outToClient.println(ServerConstants.OK);
                     // TODO: add to all necessary structures
                     userSockets.putIfAbsent(username, clientSocket);
+                } else {
+                    outToClient.println(ServerConstants.FAIL);
                 }
                 numAttempts++;
             }
