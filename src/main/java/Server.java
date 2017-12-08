@@ -1,3 +1,5 @@
+import Constants.ChatroomConstants;
+
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -40,7 +42,6 @@ public class Server {
             this.outToClient = new PrintWriter(new OutputStreamWriter(clientSocket.getOutputStream()), true);
         }
 
-        // TODO: incorporate blacklist logic
         public boolean greeting() throws Exception {
             int numAttempts = 0;
             boolean isValidated = false;
@@ -56,11 +57,11 @@ public class Server {
                 // TODO: also check if user is not already online
                 isValidated = credentials.contains(new Credential(username, password));
                 if (isValidated) {
-                    outToClient.println(ServerConstants.OK);
+                    outToClient.println(ChatroomConstants.OK);
                     // TODO: add to all necessary structures
                     userSockets.putIfAbsent(username, clientSocket);
                 } else {
-                    outToClient.println(ServerConstants.FAIL);
+                    outToClient.println(ChatroomConstants.FAIL);
                 }
                 numAttempts++;
             }
