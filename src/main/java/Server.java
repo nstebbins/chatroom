@@ -15,39 +15,52 @@ public class Server {
 
     private List<Credential> credentials;
     private Map<String, Queue<String>> messageQueue;
-    private Map<String, Queue<String>> blockedUsers;
     private Map<String, Socket> userSockets;
     private ServerGreeting serverGreeting;
 
-    public Server(List<Credential> credentials) {
+    private Server(List<Credential> credentials) {
         this.credentials = credentials;
         this.messageQueue = new ConcurrentHashMap<>();
-        this.blockedUsers = new ConcurrentHashMap<>();
         this.userSockets = new ConcurrentHashMap<>();
         for (Credential credential : this.credentials) {
             this.messageQueue.put(credential.getUsername(), new ConcurrentLinkedQueue<>());
-            this.blockedUsers.put(credential.getUsername(), new ConcurrentLinkedQueue<>());
             this.userSockets.put(credential.getUsername(), new Socket());
         }
         this.serverGreeting = new ChatroomServerGreeting();
     }
 
-    class ClientThread implements Runnable {
+    private class SendingThread implements Runnable {
+        public void run() {
+            // TODO: sending based off of the message queue
+        }
+    }
+
+    private class ClientThread implements Runnable {
 
         private Socket clientSocket; // TODO: use later
         private BufferedReader inFromClient;
         private PrintWriter outToClient;
+        private String username;
 
-        ClientThread(Socket clientSocket) throws Exception {
-            // TODO: add try/catch
+        private ClientThread(Socket clientSocket) {
             this.clientSocket = clientSocket;
-            this.inFromClient = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-            this.outToClient = new PrintWriter(new OutputStreamWriter(clientSocket.getOutputStream()), true);
+            try {
+                this.inFromClient = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+                this.outToClient = new PrintWriter(new OutputStreamWriter(clientSocket.getOutputStream()), true);
+            } catch (IOException e) {
+                System.err.println("error creating client reader and writer");
+            }
         }
 
         @Override
         public void run() {
-            serverGreeting.greet(inFromClient, outToClient, credentials);
+            this.username = serverGreeting.greet(inFromClient, outToClient, credentials);
+        }
+
+        private class ReceivingThread implements Runnable {
+            public void run() {
+                // TODO: build the dedicated receiver
+            }
         }
     }
 

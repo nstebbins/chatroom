@@ -11,9 +11,11 @@ public class ChatroomClientGreeting implements ClientGreeting {
     @Override
     public String greet(BufferedReader inFromUser, BufferedReader inFromServer, PrintWriter outToServer) {
         String username = null;
+        boolean authenticated = false;
         try {
             int attempts = 0;
             do {
+                // username
                 System.out.println("[server] " + inFromServer.readLine());
                 username = inFromUser.readLine();
                 outToServer.println(username);
@@ -25,6 +27,7 @@ public class ChatroomClientGreeting implements ClientGreeting {
                 String authMessage = inFromServer.readLine();
                 System.out.println("[server] " + authMessage);
                 if (authMessage.equals(ChatroomConstants.OK)) {
+                    authenticated = true;
                     break;
                 }
                 attempts++;
@@ -33,7 +36,7 @@ public class ChatroomClientGreeting implements ClientGreeting {
             System.err.println("error reading in user input");
             e.printStackTrace();
         }
-        return username;
+        return authenticated ? username : null;
     }
 
 }

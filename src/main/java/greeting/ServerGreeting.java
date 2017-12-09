@@ -7,5 +7,5 @@ import java.io.PrintWriter;
 import java.util.List;
 
 public interface ServerGreeting {
-    boolean greet(BufferedReader inFromClient, PrintWriter outToClient, List<Credential> credentials);
+    String greet(BufferedReader inFromClient, PrintWriter outToClient, List<Credential> credentials);
 }

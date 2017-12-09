@@ -19,7 +19,7 @@ public class Client {
             this.outToServer = new PrintWriter(new OutputStreamWriter(clientSocket.getOutputStream()), true);
             this.inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
         } catch (IOException e) {
-            e.printStackTrace(); // TODO: better logging
+            System.err.println("error creating client reader and writer");
         }
         this.inFromUser = new BufferedReader(new InputStreamReader(System.in));
         this.clientGreeting = new ChatroomClientGreeting();
