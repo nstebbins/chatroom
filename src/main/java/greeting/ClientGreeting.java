@@ -1,4 +1,4 @@
-package Greeting;
+package greeting;
 
 import java.io.BufferedReader;
 import java.io.PrintWriter;

@@ -1,4 +1,4 @@
-package Constants;
+package constants;
 
 public final class ChatroomConstants {
     public static final String OK = "welcome";

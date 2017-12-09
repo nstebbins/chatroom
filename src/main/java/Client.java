@@ -1,5 +1,5 @@
-import Greeting.ChatroomClientGreeting;
-import Greeting.ClientGreeting;
+import greeting.ChatroomClientGreeting;
+import greeting.ClientGreeting;
 
 import java.io.*;
 import java.net.Socket;

@@ -1,9 +1,10 @@
-import Constants.ChatroomConstants;
+import greeting.ChatroomServerGreeting;
+import greeting.ServerGreeting;
+import objects.Credential;
 
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
@@ -16,6 +17,7 @@ public class Server {
     private Map<String, Queue<String>> messageQueue;
     private Map<String, Queue<String>> blockedUsers;
     private Map<String, Socket> userSockets;
+    private ServerGreeting serverGreeting;
 
     public Server(List<Credential> credentials) {
         this.credentials = credentials;
@@ -27,73 +29,26 @@ public class Server {
             this.blockedUsers.put(credential.getUsername(), new ConcurrentLinkedQueue<>());
             this.userSockets.put(credential.getUsername(), new Socket());
         }
+        this.serverGreeting = new ChatroomServerGreeting();
     }
 
     class ClientThread implements Runnable {
 
-        private Socket clientSocket;
+        private Socket clientSocket; // TODO: use later
         private BufferedReader inFromClient;
         private PrintWriter outToClient;
 
-        // TODO: add try/catch
-        public ClientThread(Socket clientSocket) throws Exception {
+        ClientThread(Socket clientSocket) throws Exception {
+            // TODO: add try/catch
             this.clientSocket = clientSocket;
             this.inFromClient = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
             this.outToClient = new PrintWriter(new OutputStreamWriter(clientSocket.getOutputStream()), true);
         }
 
-        public boolean greeting() throws Exception {
-            int numAttempts = 0;
-            boolean isValidated = false;
-            String username = null;
-            while (!isValidated && numAttempts < 3) {
-                // username
-                outToClient.println("username: ");
-                username = inFromClient.readLine();
-                // password
-                outToClient.println("password: ");
-                String password = inFromClient.readLine();
-                // auth
-                // TODO: also check if user is not already online
-                isValidated = credentials.contains(new Credential(username, password));
-                if (isValidated) {
-                    outToClient.println(ChatroomConstants.OK);
-                    // TODO: add to all necessary structures
-                    userSockets.putIfAbsent(username, clientSocket);
-                } else {
-                    outToClient.println(ChatroomConstants.FAIL);
-                }
-                numAttempts++;
-            }
-            return false; // TODO: implement
-        }
-
         @Override
         public void run() {
-            try {
-                greeting();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            serverGreeting.greet(inFromClient, outToClient, credentials);
         }
-    }
-
-    private static List<Credential> readCredentials(String file) {
-        List<Credential> credentials = new ArrayList<>();
-        // TODO: read file from the resources folder
-        try {
-            BufferedReader inFromFile = new BufferedReader(new FileReader(file));
-            while (inFromFile.ready()) {
-                String[] credentialList = inFromFile.readLine().split(" ");
-                credentials.add(new Credential(credentialList[0], credentialList[1]));
-
-            }
-            inFromFile.close();
-        } catch (Exception e) {
-            e.printStackTrace(); // TODO: better logging
-        }
-        System.out.println("number of credentials read in: " + credentials.size());
-        return credentials;
     }
 
     public static void main(String args[]) throws Exception {
@@ -102,7 +57,7 @@ public class Server {
             port = Integer.parseInt(args[0]);
         }
         ServerSocket serverSocket = new ServerSocket(port);
-        Server newServer = new Server(readCredentials("/Users/nstebbins/Documents/dev/chatroom/src/main/resources/user_pass.txt"));
+        Server newServer = new Server(Credential.readCredentials("/Users/nstebbins/Documents/dev/chatroom/src/main/resources/user_pass.txt"));
         // accept clients
         while (true) {
             Socket clientSocket = serverSocket.accept();
