@@ -4,6 +4,7 @@ import greeting.ClientGreeting;
 
 import java.io.*;
 import java.net.Socket;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Client {
 
@@ -11,6 +12,7 @@ public class Client {
     private BufferedReader inFromServer;
     private BufferedReader inFromUser;
     private ClientGreeting clientGreeting;
+    private AtomicBoolean doneSending;
 
     private Client(Socket clientSocket) {
         try {
@@ -21,21 +23,46 @@ public class Client {
         }
         this.inFromUser = new BufferedReader(new InputStreamReader(System.in));
         this.clientGreeting = new ChatroomClientGreeting();
+        this.doneSending = new AtomicBoolean();
     }
 
     private class SendingThread implements Runnable {
         public void run() {
-            try {
-                while (true) {
-                    String message = inFromUser.readLine();
-                    outToServer.println(message);
-                    if (message.equals(ChatroomConstants.LOGOUT)) {
-                        System.out.println("logout triggered client side");
+            String message = "";
+            while (true) {
+                try {
+                    message = inFromUser.readLine();
+                } catch (IOException e) {
+                    System.err.println("error reading in user input");
+                }
+                outToServer.println(message);
+                if (message.equals(ChatroomConstants.LOGOUT)) {
+                    doneSending.set(true);
+                    System.out.println("logout triggered client side");
+                    break;
+                }
+            }
+        }
+    }
+
+    private class ReceivingThread implements Runnable {
+        public void run() {
+            String message = "";
+            while(!doneSending.get() && message != null) {
+                try {
+                    message = inFromServer.readLine();
+                } catch (IOException e) {
+                    // safely exit if socket is closed
+                    StringWriter sw = new StringWriter();
+                    PrintWriter pw = new PrintWriter(sw);
+                    e.printStackTrace(pw);
+                    if(sw.toString().contains("java.net.SocketException: Socket closed")) {
                         break;
+                    } else {
+                        System.err.println("error reading in user input");
                     }
                 }
-            } catch (IOException e) {
-                System.err.println("error reading in user input");
+                System.out.println("[server] " + message);
             }
         }
     }
@@ -55,10 +82,12 @@ public class Client {
         Client client = new Client(clientSocket);
         // greet
         String username = client.clientGreeting.greet(client.inFromUser, client.inFromServer, client.outToServer);
-        System.out.println("username: " + username);
+        System.out.println("greeted! welcome to the chatroom, " + username + "!");
         // start threads
         Thread send = new Thread(client.new SendingThread());
+        Thread receive = new Thread(client.new ReceivingThread());
         send.start();
+        receive.start();
         // clean-up
         send.join();
         clientSocket.close();
