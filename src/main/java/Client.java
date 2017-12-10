@@ -48,7 +48,7 @@ public class Client {
     private class ReceivingThread implements Runnable {
         public void run() {
             String message = "";
-            while(!doneSending.get() && message != null) {
+            while (!doneSending.get() && message != null) {
                 try {
                     message = inFromServer.readLine();
                 } catch (IOException e) {
@@ -82,6 +82,7 @@ public class Client {
         Client client = new Client(clientSocket);
         // greet
         String username = client.clientGreeting.greet(client.inFromUser, client.inFromServer, client.outToServer);
+        // TODO: add logic here for handling null username (and possibly server-side)
         System.out.println("greeted! welcome to the chatroom, " + username + "!");
         // start threads
         Thread send = new Thread(client.new SendingThread());
