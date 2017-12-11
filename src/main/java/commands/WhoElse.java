@@ -1,12 +1,19 @@
 package commands;
 
+import objects.ClientMessage;
+
+import java.util.Queue;
+
 public class WhoElse {
 
-    public String execute() {
-        // TODO: implement using getAvailableUsers
-        // TODO: you don't want to return string, you want to return <username, message> tuple
-        // TODO: or you can add to messageQueue directly (a little messier)
-        return "";
+    public WhoElse() {}
+
+    public ClientMessage execute(String username, Queue<String> availableUsers) {
+        String message = "";
+        for (String availableUser : availableUsers) {
+            message += availableUser + " ";
+        }
+        return new ClientMessage(username, message);
     }
 
 }

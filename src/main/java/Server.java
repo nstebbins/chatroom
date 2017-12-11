@@ -1,5 +1,7 @@
+import commands.WhoElse;
 import greeting.ChatroomServerGreeting;
 import greeting.ServerGreeting;
+import objects.ClientMessage;
 import objects.Credential;
 
 import java.io.*;
@@ -29,9 +31,8 @@ public class Server {
     }
 
     // helper methods
-    public static synchronized ConcurrentLinkedQueue<String> getAvailableUsers() {
-        // TODO: this is the replacement for available users
-        return null;
+    public synchronized ConcurrentLinkedQueue<String> getAvailableUsers() {
+        return new ConcurrentLinkedQueue<>(this.outToClients.keySet());
     }
 
     private class SendingThread implements Runnable {
@@ -55,6 +56,8 @@ public class Server {
         private BufferedReader inFromClient;
         private PrintWriter outToClient;
         private String username;
+        // commands
+        private WhoElse whoElse;
 
         private ClientThread(Socket clientSocket) {
             this.clientSocket = clientSocket;
@@ -64,6 +67,8 @@ public class Server {
             } catch (IOException e) {
                 System.err.println("error creating client reader and writer");
             }
+            // commands
+            this.whoElse = new WhoElse();
         }
 
         @Override
@@ -78,17 +83,22 @@ public class Server {
 
         private class ReceivingThread implements Runnable {
             public void run() {
-                // TODO: build the dedicated receiver
                 // TODO: handle logout
                 String message = "";
                 do {
                     messageQueue.get(username).add("enter a command: ");
                     try {
                         message = inFromClient.readLine();
+                        // process message
+                        String[] command = message.split(" ");
+                        if (command[0].equals("whoelse")) {
+                            ClientMessage clientMessage = whoElse.execute(username, getAvailableUsers());
+                            messageQueue.get(clientMessage.getUsername()).add(clientMessage.getMessage());
+                        }
                     } catch (IOException e) {
                         System.err.println("error reading in client input");
                     }
-                } while (message != null);
+                } while (message != null); // TODO: maybe rewrite this line
             }
         }
     }
