@@ -48,7 +48,7 @@ public class Client {
     private class ReceivingThread implements Runnable {
         public void run() {
             String message = "";
-            while (!doneSending.get() && message != null) {
+            while (message != null) {
                 try {
                     message = inFromServer.readLine();
                 } catch (IOException e) {
@@ -62,7 +62,11 @@ public class Client {
                         System.err.println("error reading in user input");
                     }
                 }
-                System.out.println("[server] " + message);
+                if(!doneSending.get()) {
+                    System.out.println("[server] " + message);
+                } else {
+                    break; // safely exit if done sending
+                }
             }
         }
     }
@@ -83,14 +87,18 @@ public class Client {
         // greet
         String username = client.clientGreeting.greet(client.inFromUser, client.inFromServer, client.outToServer);
         // TODO: add logic here for handling null username (and possibly server-side)
-        System.out.println("greeted! welcome to the chatroom, " + username + "!");
-        // start threads
-        Thread send = new Thread(client.new SendingThread());
-        Thread receive = new Thread(client.new ReceivingThread());
-        send.start();
-        receive.start();
-        // clean-up
-        send.join();
+        if (username != null) {
+            System.out.println("greeted! welcome to the chatroom, " + username + "!");
+            // start threads
+            Thread send = new Thread(client.new SendingThread());
+            Thread receive = new Thread(client.new ReceivingThread());
+            send.start();
+            receive.start();
+            // clean-up
+            send.join();
+        } else {
+            System.out.println("not authenticated into chatroom after three tries. goodbye!");
+        }
         clientSocket.close();
     }
 }

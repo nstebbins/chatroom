@@ -63,9 +63,11 @@ public class Server {
         @Override
         public void run() {
             this.username = serverGreeting.greet(inFromClient, outToClient, credentials);
-            outToClients.put(username, outToClient);
-            Thread receive = new Thread(this.new ReceivingThread());
-            receive.start();
+            if (this.username != null) {
+                outToClients.put(username, outToClient);
+                Thread receive = new Thread(this.new ReceivingThread());
+                receive.start();
+            }
         }
 
         private class ReceivingThread implements Runnable {
