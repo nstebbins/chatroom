@@ -28,6 +28,12 @@ public class Server {
         this.serverGreeting = new ChatroomServerGreeting();
     }
 
+    // helper methods
+    public static synchronized ConcurrentLinkedQueue<String> getAvailableUsers() {
+        // TODO: this is the replacement for available users
+        return null;
+    }
+
     private class SendingThread implements Runnable {
         public void run() {
             // TODO: sending based off of the message queue
