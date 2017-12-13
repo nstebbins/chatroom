@@ -1,3 +1,4 @@
+import commands.DirectMessage;
 import commands.WhoElse;
 import greeting.ChatroomServerGreeting;
 import greeting.ServerGreeting;
@@ -7,12 +8,13 @@ import objects.Credential;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.List;
-import java.util.Map;
-import java.util.Queue;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+// TODO: prevent multiple people of same user from authenticating in
+// TODO: handle user logouts gracefully
+// TODO: some kind of graceful check that message queue has valid users for messages
 public class Server {
 
     private List<Credential> credentials;
@@ -58,6 +60,7 @@ public class Server {
         private String username;
         // commands
         private WhoElse whoElse;
+        private DirectMessage directMessage;
 
         private ClientThread(Socket clientSocket) {
             this.clientSocket = clientSocket;
@@ -69,6 +72,7 @@ public class Server {
             }
             // commands
             this.whoElse = new WhoElse();
+            this.directMessage = new DirectMessage();
         }
 
         @Override
@@ -91,8 +95,14 @@ public class Server {
                         message = inFromClient.readLine();
                         // process message
                         String[] command = message.split(" ");
+                        List<ClientMessage> clientMessages = new ArrayList<>();
                         if (command[0].equals("whoelse")) {
-                            ClientMessage clientMessage = whoElse.execute(username, getAvailableUsers());
+                            clientMessages = whoElse.execute(username, getAvailableUsers());
+                        } else if(command[0].equals("message")) {
+                            clientMessages = directMessage.execute(username, command[1], String.join(" ", Arrays.copyOfRange(command, 2, command.length)));
+                        }
+                        // add client messages to message queue
+                        for (ClientMessage clientMessage : clientMessages) {
                             messageQueue.get(clientMessage.getUsername()).add(clientMessage.getMessage());
                         }
                     } catch (IOException e) {

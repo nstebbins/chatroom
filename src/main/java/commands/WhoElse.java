@@ -2,18 +2,20 @@ package commands;
 
 import objects.ClientMessage;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Queue;
 
 public class WhoElse {
 
-    public WhoElse() {}
-
-    public ClientMessage execute(String username, Queue<String> availableUsers) {
+    public List<ClientMessage> execute(String username, Queue<String> availableUsers) {
+        List<ClientMessage> messages = new ArrayList<>();
         String message = "";
         for (String availableUser : availableUsers) {
             message += availableUser + " ";
         }
-        return new ClientMessage(username, message);
+        messages.add(new ClientMessage(username, message));
+        return messages;
     }
 
 }
