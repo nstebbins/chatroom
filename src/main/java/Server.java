@@ -1,4 +1,5 @@
 import commands.Broadcast;
+import commands.CommandNotFound;
 import commands.DirectMessage;
 import commands.WhoElse;
 import greeting.ChatroomServerGreeting;
@@ -64,6 +65,7 @@ public class Server {
         private WhoElse whoElse;
         private DirectMessage directMessage;
         private Broadcast broadcast;
+        private CommandNotFound commandNotFound;
 
         private ClientThread(Socket clientSocket) {
             this.clientSocket = clientSocket;
@@ -77,6 +79,7 @@ public class Server {
             this.whoElse = new WhoElse();
             this.directMessage = new DirectMessage();
             this.broadcast = new Broadcast();
+            this.commandNotFound = new CommandNotFound();
         }
 
         @Override
@@ -98,6 +101,7 @@ public class Server {
                     try {
                         message = inFromClient.readLine();
                         // process message
+                        // TODO: catch null pointer exceptions from "logout"
                         String[] command = message.split(" ");
                         List<ClientMessage> clientMessages = new ArrayList<>();
                         // command parsing
@@ -112,7 +116,7 @@ public class Server {
                                 clientMessages = broadcast.execute(username, getAvailableUsers(), ArrayUtil.joinArraySubsetBySpace(command, 1));
                                 break;
                             default:
-                                // TODO: add "command invalid" message
+                                clientMessages = commandNotFound.execute(username);
                                 break;
                         }
                         // add client messages to message queue
