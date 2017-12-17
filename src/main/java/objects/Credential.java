@@ -53,7 +53,7 @@ public final class Credential {
             }
             inFromFile.close();
         } catch (Exception e) {
-            e.printStackTrace(); // TODO: better logging
+            System.err.println("error reading in credentials");
         }
         System.out.println("number of credentials read in: " + credentials.size());
         return credentials;

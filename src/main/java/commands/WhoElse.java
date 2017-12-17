@@ -8,6 +8,12 @@ import java.util.Queue;
 
 public class WhoElse {
 
+    /**
+     * message list of chatroom member usernames
+     * @param username sender username
+     * @param availableUsers available users
+     * @return client messages
+     */
     public List<ClientMessage> execute(String username, Queue<String> availableUsers) {
         List<ClientMessage> messages = new ArrayList<>();
         String message = "";

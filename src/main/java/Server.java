@@ -1,9 +1,11 @@
+import commands.Broadcast;
 import commands.DirectMessage;
 import commands.WhoElse;
 import greeting.ChatroomServerGreeting;
 import greeting.ServerGreeting;
 import objects.ClientMessage;
 import objects.Credential;
+import util.ArrayUtil;
 
 import java.io.*;
 import java.net.ServerSocket;
@@ -61,6 +63,7 @@ public class Server {
         // commands
         private WhoElse whoElse;
         private DirectMessage directMessage;
+        private Broadcast broadcast;
 
         private ClientThread(Socket clientSocket) {
             this.clientSocket = clientSocket;
@@ -73,6 +76,7 @@ public class Server {
             // commands
             this.whoElse = new WhoElse();
             this.directMessage = new DirectMessage();
+            this.broadcast = new Broadcast();
         }
 
         @Override
@@ -96,10 +100,20 @@ public class Server {
                         // process message
                         String[] command = message.split(" ");
                         List<ClientMessage> clientMessages = new ArrayList<>();
-                        if (command[0].equals("whoelse")) {
-                            clientMessages = whoElse.execute(username, getAvailableUsers());
-                        } else if(command[0].equals("message")) {
-                            clientMessages = directMessage.execute(username, command[1], String.join(" ", Arrays.copyOfRange(command, 2, command.length)));
+                        // command parsing
+                        switch (command[0]) {
+                            case "whoelse":
+                                clientMessages = whoElse.execute(username, getAvailableUsers());
+                                break;
+                            case "message":
+                                clientMessages = directMessage.execute(username, command[1], ArrayUtil.joinArraySubsetBySpace(command, 2));
+                                break;
+                            case "broadcast":
+                                clientMessages = broadcast.execute(username, getAvailableUsers(), ArrayUtil.joinArraySubsetBySpace(command, 1));
+                                break;
+                            default:
+                                // TODO: add "command invalid" message
+                                break;
                         }
                         // add client messages to message queue
                         for (ClientMessage clientMessage : clientMessages) {
