@@ -16,8 +16,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 // TODO: prevent multiple people of same user from authenticating in
-// TODO: handle user logouts gracefully
 // TODO: some kind of graceful check that message queue has valid users for messages
+// TODO: get available users should only be users at current moment; thus remove users when they logout (handle outToClients)
 public class Server {
 
     private List<Credential> credentials;
@@ -42,7 +42,6 @@ public class Server {
 
     private class SendingThread implements Runnable {
         public void run() {
-            // TODO: sending based off of the message queue
             while (true) {
                 for (Map.Entry<String, Queue<String>> e : messageQueue.entrySet()) {
                     Queue<String> messages = e.getValue();
@@ -94,14 +93,11 @@ public class Server {
 
         private class ReceivingThread implements Runnable {
             public void run() {
-                // TODO: handle logout
-                String message = "";
                 do {
                     messageQueue.get(username).add("enter a command: ");
                     try {
-                        message = inFromClient.readLine();
+                        String message = inFromClient.readLine();
                         // process message
-                        // TODO: catch null pointer exceptions from "logout"
                         String[] command = message.split(" ");
                         List<ClientMessage> clientMessages = new ArrayList<>();
                         // command parsing
@@ -125,8 +121,11 @@ public class Server {
                         }
                     } catch (IOException e) {
                         System.err.println("error reading in client input");
+                    } catch (NullPointerException e) {
+                        System.out.println("client left the platform");
+                        break;
                     }
-                } while (message != null); // TODO: maybe rewrite this line
+                } while (true);
             }
         }
     }

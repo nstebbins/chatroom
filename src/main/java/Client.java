@@ -86,7 +86,6 @@ public class Client {
         Client client = new Client(clientSocket);
         // greet
         String username = client.clientGreeting.greet(client.inFromUser, client.inFromServer, client.outToServer);
-        // TODO: add logic here for handling null username (and possibly server-side)
         if (username != null) {
             System.out.println("greeted! welcome to the chatroom, " + username + "!");
             // start threads
