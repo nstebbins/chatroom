@@ -16,7 +16,6 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-// TODO: some kind of graceful check that message queue has valid users for messages
 public class Server {
 
     private List<Credential> credentials;
@@ -150,7 +149,11 @@ public class Server {
                         }
                         // add client messages to message queue
                         for (ClientMessage clientMessage : clientMessages) {
-                            messageQueue.get(clientMessage.getUsername()).add(clientMessage.getMessage());
+                            if (getAvailableUsers().contains(clientMessage.getUsername())) {
+                                messageQueue.get(clientMessage.getUsername()).add(clientMessage.getMessage());
+                            } else {
+                                // TODO: send message back to username that mentions this message is invalid
+                            }
                         }
                     } catch (IOException e) {
                         System.err.println("error reading in client input");
