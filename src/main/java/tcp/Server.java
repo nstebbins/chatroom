@@ -1,9 +1,10 @@
+package tcp;
+
 import commands.Broadcast;
 import commands.CommandNotFound;
 import commands.DirectMessage;
 import commands.WhoElse;
-import greeting.ChatroomServerGreeting;
-import greeting.ServerGreeting;
+import constants.ChatroomConstants;
 import objects.ClientMessage;
 import objects.Credential;
 import util.ArrayUtil;
@@ -15,15 +16,12 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-// TODO: prevent multiple people of same user from authenticating in
 // TODO: some kind of graceful check that message queue has valid users for messages
-// TODO: get available users should only be users at current moment; thus remove users when they logout (handle outToClients)
 public class Server {
 
     private List<Credential> credentials;
     private Map<String, Queue<String>> messageQueue;
     private Map<String, PrintWriter> outToClients;
-    private ServerGreeting serverGreeting;
 
     private Server(List<Credential> credentials) {
         this.credentials = credentials;
@@ -32,10 +30,9 @@ public class Server {
         for (Credential credential : this.credentials) {
             this.messageQueue.put(credential.getUsername(), new ConcurrentLinkedQueue<>());
         }
-        this.serverGreeting = new ChatroomServerGreeting();
     }
 
-    // helper methods
+    // exposed helper method
     public synchronized ConcurrentLinkedQueue<String> getAvailableUsers() {
         return new ConcurrentLinkedQueue<>(this.outToClients.keySet());
     }
@@ -56,7 +53,6 @@ public class Server {
 
     private class ClientThread implements Runnable {
 
-        private Socket clientSocket;
         private BufferedReader inFromClient;
         private PrintWriter outToClient;
         private String username;
@@ -67,7 +63,6 @@ public class Server {
         private CommandNotFound commandNotFound;
 
         private ClientThread(Socket clientSocket) {
-            this.clientSocket = clientSocket;
             try {
                 this.inFromClient = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
                 this.outToClient = new PrintWriter(new OutputStreamWriter(clientSocket.getOutputStream()), true);
@@ -83,11 +78,49 @@ public class Server {
 
         @Override
         public void run() {
-            this.username = serverGreeting.greet(inFromClient, outToClient, credentials);
+            // greet
+            ClientGreeting clientGreeting = this.new ClientGreeting();
+            this.username = clientGreeting.greet();
+            // chatroom
             if (this.username != null) {
                 outToClients.put(username, outToClient);
                 Thread receive = new Thread(this.new ReceivingThread());
                 receive.start();
+            }
+        }
+
+        private class ClientGreeting {
+            /**
+             * server-side authentication
+             * @return username if authenticated successfully, null otherwise
+             */
+            public String greet() {
+                String username = null;
+                boolean authenticated = false;
+                try {
+                    int attempts = 0;
+                    do {
+                        // username
+                        outToClient.println("username: ");
+                        username = inFromClient.readLine();
+                        // password
+                        outToClient.println("password: ");
+                        String password = inFromClient.readLine();
+                        // auth
+                        if (credentials.contains(new Credential(username, password)) && !getAvailableUsers().contains(username)) {
+                            outToClient.println(ChatroomConstants.OK);
+                            authenticated = true;
+                            break;
+                        } else {
+                            outToClient.println(ChatroomConstants.FAIL);
+                        }
+                        attempts++;
+                    } while (attempts < 3);
+                } catch (IOException e) {
+                    System.err.println("error reading in client input");
+                    e.printStackTrace();
+                }
+                return authenticated ? username : null;
             }
         }
 
@@ -123,6 +156,7 @@ public class Server {
                         System.err.println("error reading in client input");
                     } catch (NullPointerException e) {
                         System.out.println("client left the platform");
+                        outToClients.remove(username);
                         break;
                     }
                 } while (true);

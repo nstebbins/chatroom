@@ -1,6 +1,6 @@
+package tcp;
+
 import constants.ChatroomConstants;
-import greeting.ChatroomClientGreeting;
-import greeting.ClientGreeting;
 
 import java.io.*;
 import java.net.Socket;
@@ -11,7 +11,6 @@ public class Client {
     private PrintWriter outToServer;
     private BufferedReader inFromServer;
     private BufferedReader inFromUser;
-    private ClientGreeting clientGreeting;
     private AtomicBoolean doneSending;
 
     private Client(Socket clientSocket) {
@@ -22,8 +21,43 @@ public class Client {
             System.err.println("error creating client reader and writer");
         }
         this.inFromUser = new BufferedReader(new InputStreamReader(System.in));
-        this.clientGreeting = new ChatroomClientGreeting();
         this.doneSending = new AtomicBoolean();
+    }
+
+    private class ClientGreeting {
+        /**
+         * client-side authentication
+         * @return username if authenticated successfully, null otherwise
+         */
+        public String greet() {
+            String username = null;
+            boolean authenticated = false;
+            try {
+                int attempts = 0;
+                do {
+                    // username
+                    System.out.println("[server] " + inFromServer.readLine());
+                    username = inFromUser.readLine();
+                    outToServer.println(username);
+                    // password
+                    System.out.println("[server] " + inFromServer.readLine());
+                    String password = inFromUser.readLine();
+                    outToServer.println(password);
+                    // auth
+                    String authMessage = inFromServer.readLine();
+                    System.out.println("[server] " + authMessage);
+                    if (authMessage.equals(ChatroomConstants.OK)) {
+                        authenticated = true;
+                        break;
+                    }
+                    attempts++;
+                } while (attempts < 3);
+            } catch (IOException e) {
+                System.err.println("error reading in user input");
+                e.printStackTrace();
+            }
+            return authenticated ? username : null;
+        }
     }
 
     private class SendingThread implements Runnable {
@@ -85,7 +119,9 @@ public class Client {
         Socket clientSocket = new Socket(ip, port);
         Client client = new Client(clientSocket);
         // greet
-        String username = client.clientGreeting.greet(client.inFromUser, client.inFromServer, client.outToServer);
+        ClientGreeting clientGreeting = client.new ClientGreeting();
+        String username = clientGreeting.greet();
+        // chatroom
         if (username != null) {
             System.out.println("greeted! welcome to the chatroom, " + username + "!");
             // start threads
