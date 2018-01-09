@@ -16,6 +16,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+// TODO: add doc strings
 public class Server {
 
     private List<Credential> credentials;
@@ -131,7 +132,7 @@ public class Server {
                         String message = inFromClient.readLine();
                         // process message
                         String[] command = message.split(" ");
-                        List<ClientMessage> clientMessages = new ArrayList<>();
+                        List<ClientMessage> clientMessages;
                         // command parsing
                         switch (command[0]) {
                             case "whoelse":
@@ -152,7 +153,7 @@ public class Server {
                             if (getAvailableUsers().contains(clientMessage.getUsername())) {
                                 messageQueue.get(clientMessage.getUsername()).add(clientMessage.getMessage());
                             } else {
-                                // TODO: send message back to username that mentions this message is invalid
+                                // TODO: send message back to username that mentions the username of the recipient is invalid
                             }
                         }
                     } catch (IOException e) {
@@ -173,6 +174,7 @@ public class Server {
             port = Integer.parseInt(args[0]);
         }
         ServerSocket serverSocket = new ServerSocket(port);
+        // TODO: modify path
         Server server = new Server(Credential.readCredentials("/Users/nstebbins/Documents/dev/chatroom/src/main/resources/user_pass.txt"));
         Thread send = new Thread(server.new SendingThread());
         send.start();
