@@ -1,9 +1,6 @@
 package tcp;
 
-import commands.Broadcast;
-import commands.CommandNotFound;
-import commands.DirectMessage;
-import commands.WhoElse;
+import commands.*;
 import constants.ChatroomConstants;
 import objects.ClientMessage;
 import objects.Credential;
@@ -61,6 +58,7 @@ public class Server {
         private DirectMessage directMessage;
         private Broadcast broadcast;
         private CommandNotFound commandNotFound;
+        private UserNotFound userNotFound;
 
         private ClientThread(Socket clientSocket) {
             try {
@@ -74,6 +72,7 @@ public class Server {
             this.directMessage = new DirectMessage();
             this.broadcast = new Broadcast();
             this.commandNotFound = new CommandNotFound();
+            this.userNotFound = new UserNotFound();
         }
 
         @Override
@@ -124,6 +123,7 @@ public class Server {
             }
         }
 
+        // TODO: add 'help' command
         private class ReceivingThread implements Runnable {
             public void run() {
                 do {
@@ -149,11 +149,12 @@ public class Server {
                                 break;
                         }
                         // add client messages to message queue
-                        for (ClientMessage clientMessage : clientMessages) {
+                        for (int i = 0; i < clientMessages.size(); i++) {
+                            ClientMessage clientMessage = clientMessages.get(i);
                             if (getAvailableUsers().contains(clientMessage.getUsername())) {
                                 messageQueue.get(clientMessage.getUsername()).add(clientMessage.getMessage());
                             } else {
-                                // TODO: send message back to username that mentions the username of the recipient is invalid
+                                clientMessages.addAll(userNotFound.execute(username, clientMessage.getUsername()));
                             }
                         }
                     } catch (IOException e) {
