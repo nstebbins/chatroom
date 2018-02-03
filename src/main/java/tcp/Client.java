@@ -56,14 +56,13 @@ public class Client {
         clientSocket.close();
     }
 
-
     private class ClientGreeting {
         /**
          * client-side authentication
          *
          * @return username if authenticated successfully, null otherwise
          */
-        public String greet() {
+        String greet() {
             String username = null;
             boolean authenticated = false;
             try {
@@ -95,7 +94,11 @@ public class Client {
     }
 
 
+    /**
+     * thread for sending messages
+     */
     private class SendingThread implements Runnable {
+        @Override
         public void run() {
             String message = "";
             while (true) {
@@ -115,7 +118,11 @@ public class Client {
     }
 
 
+    /**
+     * thread for receiving messages
+     */
     private class ReceivingThread implements Runnable {
+        @Override
         public void run() {
             String message = "";
             while (message != null) {

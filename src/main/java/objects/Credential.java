@@ -1,7 +1,5 @@
 package objects;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,23 +15,19 @@ public final class Credential {
     /**
      * read credentials
      *
-     * @param file file containing credentials
      * @return list of credentials
      */
-    public static List<Credential> readCredentials(String file) {
+    public static List<Credential> generateTestCredentials() {
         List<Credential> credentials = new ArrayList<>();
-        try {
-            BufferedReader inFromFile = new BufferedReader(new FileReader(file));
-            while (inFromFile.ready()) {
-                String[] credentialList = inFromFile.readLine().split(" ");
-                credentials.add(new Credential(credentialList[0], credentialList[1]));
-
-            }
-            inFromFile.close();
-        } catch (Exception e) {
-            System.err.println("error reading in credentials");
-        }
-        System.out.println("number of credentials read in: " + credentials.size());
+        credentials.add(new Credential("Columbia", "116bway"));
+        credentials.add(new Credential("SEAS", "winterbreakisover"));
+        credentials.add(new Credential("csee4119", "lotsofexams"));
+        credentials.add(new Credential("foobar", "passpass"));
+        credentials.add(new Credential("windows", "withglass"));
+        credentials.add(new Credential("Google", "hasglasses"));
+        credentials.add(new Credential("facebook", "wastingtime"));
+        credentials.add(new Credential("wikipedia", "donation"));
+        credentials.add(new Credential("network", "seemsez"));
         return credentials;
     }
 

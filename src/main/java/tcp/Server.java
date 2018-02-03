@@ -15,7 +15,6 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-// TODO: add doc strings
 public class Server {
 
     private List<Credential> credentials;
@@ -37,9 +36,7 @@ public class Server {
             port = Integer.parseInt(args[0]);
         }
         ServerSocket serverSocket = new ServerSocket(port);
-        // TODO: modify path
-        Server server = new Server(
-            Credential.readCredentials("/Users/nstebbins/Documents/dev/chatroom/src/main/resources/user_pass.txt"));
+        Server server = new Server(Credential.generateTestCredentials());
         Thread send = new Thread(server.new SendingThread());
         send.start();
         // accept clients
@@ -51,12 +48,15 @@ public class Server {
     }
 
     // exposed helper method
-    public synchronized ConcurrentLinkedQueue<String> getAvailableUsers() {
+    private synchronized ConcurrentLinkedQueue<String> getAvailableUsers() {
         return new ConcurrentLinkedQueue<>(this.outToClients.keySet());
     }
 
-
+    /**
+     * thread for sending messages
+     */
     private class SendingThread implements Runnable {
+        @Override
         public void run() {
             while (true) {
                 for (Map.Entry<String, Queue<String>> e : messageQueue.entrySet()) {
@@ -100,14 +100,13 @@ public class Server {
             this.userNotFound = new UserNotFound();
         }
 
-
         private class ClientGreeting {
             /**
              * server-side authentication
              *
              * @return username if authenticated successfully, null otherwise
              */
-            public String greet() {
+            String greet() {
                 String username = null;
                 boolean authenticated = false;
                 try {
@@ -136,7 +135,9 @@ public class Server {
                 }
                 return authenticated ? username : null;
             }
-        }        @Override
+        }
+
+        @Override
         public void run() {
             // greet
             ClientGreeting clientGreeting = this.new ClientGreeting();
@@ -149,8 +150,11 @@ public class Server {
             }
         }
 
-
+        /**
+         * thread for receiving messages
+         */
         private class ReceivingThread implements Runnable {
+            @Override
             public void run() {
                 do {
                     messageQueue.get(username).add("enter a command: ");
@@ -198,8 +202,6 @@ public class Server {
                 } while (true);
             }
         }
-
-
 
     }
 }
