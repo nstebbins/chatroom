@@ -9,7 +9,8 @@ public class UserNotFound {
 
     /**
      * send "user not found" back to sender
-     * @param senderUsername sender username
+     *
+     * @param senderUsername   sender username
      * @param receiverUsername receiver username
      * @return client messages
      */

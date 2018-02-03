@@ -9,6 +9,7 @@ public class CommandNotFound {
 
     /**
      * send "message not found" back to sender
+     *
      * @param username sender username
      * @return client messages
      */

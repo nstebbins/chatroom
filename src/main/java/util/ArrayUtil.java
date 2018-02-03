@@ -6,7 +6,8 @@ public class ArrayUtil {
 
     /**
      * subset from start index to length - 1 of array
-     * @param arr array
+     *
+     * @param arr   array
      * @param start start index for subset
      * @return
      */

@@ -10,9 +10,10 @@ public class Broadcast {
 
     /**
      * broadcast message to all users in chatroom
-     * @param username sender username
+     *
+     * @param username       sender username
      * @param availableUsers available users
-     * @param message message to send
+     * @param message        message to send
      * @return client messages
      */
     public List<ClientMessage> execute(String username, Queue<String> availableUsers, String message) {

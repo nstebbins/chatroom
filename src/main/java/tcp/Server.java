@@ -9,7 +9,9 @@ import util.ArrayUtil;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -29,10 +31,30 @@ public class Server {
         }
     }
 
+    public static void main(String args[]) throws Exception {
+        int port = 4000;
+        if (args.length > 0) {
+            port = Integer.parseInt(args[0]);
+        }
+        ServerSocket serverSocket = new ServerSocket(port);
+        // TODO: modify path
+        Server server = new Server(
+            Credential.readCredentials("/Users/nstebbins/Documents/dev/chatroom/src/main/resources/user_pass.txt"));
+        Thread send = new Thread(server.new SendingThread());
+        send.start();
+        // accept clients
+        while (true) {
+            Socket clientSocket = serverSocket.accept();
+            Thread client = new Thread(server.new ClientThread(clientSocket));
+            client.start();
+        }
+    }
+
     // exposed helper method
     public synchronized ConcurrentLinkedQueue<String> getAvailableUsers() {
         return new ConcurrentLinkedQueue<>(this.outToClients.keySet());
     }
+
 
     private class SendingThread implements Runnable {
         public void run() {
@@ -48,6 +70,7 @@ public class Server {
         }
     }
 
+
     private class ClientThread implements Runnable {
 
         private BufferedReader inFromClient;
@@ -57,6 +80,7 @@ public class Server {
         private WhoElse whoElse;
         private DirectMessage directMessage;
         private Broadcast broadcast;
+        private Help help;
         private CommandNotFound commandNotFound;
         private UserNotFound userNotFound;
 
@@ -71,26 +95,16 @@ public class Server {
             this.whoElse = new WhoElse();
             this.directMessage = new DirectMessage();
             this.broadcast = new Broadcast();
+            this.help = new Help();
             this.commandNotFound = new CommandNotFound();
             this.userNotFound = new UserNotFound();
         }
 
-        @Override
-        public void run() {
-            // greet
-            ClientGreeting clientGreeting = this.new ClientGreeting();
-            this.username = clientGreeting.greet();
-            // chatroom
-            if (this.username != null) {
-                outToClients.put(username, outToClient);
-                Thread receive = new Thread(this.new ReceivingThread());
-                receive.start();
-            }
-        }
 
         private class ClientGreeting {
             /**
              * server-side authentication
+             *
              * @return username if authenticated successfully, null otherwise
              */
             public String greet() {
@@ -106,7 +120,8 @@ public class Server {
                         outToClient.println("password: ");
                         String password = inFromClient.readLine();
                         // auth
-                        if (credentials.contains(new Credential(username, password)) && !getAvailableUsers().contains(username)) {
+                        if (credentials.contains(new Credential(username, password)) && !getAvailableUsers()
+                            .contains(username)) {
                             outToClient.println(ChatroomConstants.OK);
                             authenticated = true;
                             break;
@@ -121,9 +136,20 @@ public class Server {
                 }
                 return authenticated ? username : null;
             }
+        }        @Override
+        public void run() {
+            // greet
+            ClientGreeting clientGreeting = this.new ClientGreeting();
+            this.username = clientGreeting.greet();
+            // chatroom
+            if (this.username != null) {
+                outToClients.put(username, outToClient);
+                Thread receive = new Thread(this.new ReceivingThread());
+                receive.start();
+            }
         }
 
-        // TODO: add 'help' command
+
         private class ReceivingThread implements Runnable {
             public void run() {
                 do {
@@ -139,10 +165,15 @@ public class Server {
                                 clientMessages = whoElse.execute(username, getAvailableUsers());
                                 break;
                             case "message":
-                                clientMessages = directMessage.execute(username, command[1], ArrayUtil.joinArraySubsetBySpace(command, 2));
+                                clientMessages = directMessage
+                                    .execute(username, command[1], ArrayUtil.joinArraySubsetBySpace(command, 2));
                                 break;
                             case "broadcast":
-                                clientMessages = broadcast.execute(username, getAvailableUsers(), ArrayUtil.joinArraySubsetBySpace(command, 1));
+                                clientMessages = broadcast.execute(username, getAvailableUsers(),
+                                    ArrayUtil.joinArraySubsetBySpace(command, 1));
+                                break;
+                            case "help":
+                                clientMessages = help.execute(username);
                                 break;
                             default:
                                 clientMessages = commandNotFound.execute(username);
@@ -167,23 +198,8 @@ public class Server {
                 } while (true);
             }
         }
-    }
 
-    public static void main(String args[]) throws Exception {
-        int port = 4000;
-        if (args.length > 0) {
-            port = Integer.parseInt(args[0]);
-        }
-        ServerSocket serverSocket = new ServerSocket(port);
-        // TODO: modify path
-        Server server = new Server(Credential.readCredentials("/Users/nstebbins/Documents/dev/chatroom/src/main/resources/user_pass.txt"));
-        Thread send = new Thread(server.new SendingThread());
-        send.start();
-        // accept clients
-        while (true) {
-            Socket clientSocket = serverSocket.accept();
-            Thread client = new Thread(server.new ClientThread(clientSocket));
-            client.start();
-        }
+
+
     }
 }

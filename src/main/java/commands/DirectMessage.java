@@ -9,9 +9,10 @@ public class DirectMessage {
 
     /**
      * direct message from sender to receiver
-     * @param senderUsername sender username
+     *
+     * @param senderUsername   sender username
      * @param receiverUsername receiver username
-     * @param message message to send
+     * @param message          message to send
      * @return client messages
      */
     public List<ClientMessage> execute(String senderUsername, String receiverUsername, String message) {

@@ -10,7 +10,8 @@ public class WhoElse {
 
     /**
      * message list of chatroom member usernames
-     * @param username sender username
+     *
+     * @param username       sender username
      * @param availableUsers available users
      * @return client messages
      */
