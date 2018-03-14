@@ -13,11 +13,22 @@ commands supported
 
 to run chatroom's server
 -------------
-to build the `chatroom` image:
+to build the `chatroom` server image:
 ```r
-docker build -t chatroom .
+docker build -t chatroom-server . -f server.Dockerfile
 ```
-and to run the container (also named `chatroom`):
+and to run the container (also named `chatroom-server`):
 ```r
-docker run -p 4000:4000 --name chatroom chatroom
+docker run -p 4000:4000 --name=chatroom-server chatroom-server
+```
+
+to run chatroom's client
+-------------
+to build the `chatroom` client image:
+```r
+docker build -t chatroom-client . -f client.Dockerfile
+```
+and to run the container (also named `chatroom-client`):
+```r
+docker run -it --name=chatroom-client --network=host chatroom-client
 ```
