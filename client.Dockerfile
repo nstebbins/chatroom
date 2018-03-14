@@ -8,8 +8,5 @@ WORKDIR /app
 # copy files
 COPY target/chatroom-1.0-SNAPSHOT.jar /app/chatroom-1.0-SNAPSHOT.jar
 
-# make port available
-EXPOSE 4000
-
-# run chatroom
-ENTRYPOINT ["java", "-cp", "/app/chatroom-1.0-SNAPSHOT.jar", "tcp.Server"]
+# run client
+ENTRYPOINT ["java", "-cp", "/app/chatroom-1.0-SNAPSHOT.jar", "tcp.Client", "localhost", "4000"]
